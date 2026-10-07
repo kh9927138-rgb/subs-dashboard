@@ -3,7 +3,14 @@ import re
 
 RISK = re.compile(
     r"(자살|죽고|suicide|kill myself|주소|전화번호|계좌|password|비밀번호|"
-    r"사귀|연애|섹스|sex|nude|협찬|광고 문의|collab|환불|고소|lawyer)", re.I)
+    r"사귀|연애|섹스|sex|nude|환불|고소|lawyer)", re.I)
+
+
+INQUIRY = re.compile(r"(협찬|광고 ?문의|제안|협업|제휴|collab|sponsor|partnership|business inquiry)", re.I)
+
+
+def is_inquiry(text: str) -> bool:
+    return bool(INQUIRY.search(text))
 
 
 def needs_human(text: str) -> bool:

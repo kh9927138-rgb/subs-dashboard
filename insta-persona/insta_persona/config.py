@@ -25,6 +25,9 @@ class Persona:
     topics: list = field(default_factory=list)
     avoid: list = field(default_factory=list)
     hashtags_base: list = field(default_factory=list)
+    ad_label: str = "#광고"
+    profile_link: str = ""
+    content_mix: dict = field(default_factory=lambda: {"daily": 0.6, "curation": 0.4})
     posts_per_week: int = 3
     post_times: list = field(default_factory=lambda: ["12:00"])
     timezone: str = "UTC"

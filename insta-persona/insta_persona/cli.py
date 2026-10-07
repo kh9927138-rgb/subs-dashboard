@@ -2,7 +2,7 @@ import argparse
 import sys
 import time
 
-from . import content, engagement, publisher
+from . import content, engagement, products, publisher
 from .config import load_env, load_persona
 from .db import connect
 from .instagram import IG
@@ -14,6 +14,10 @@ def main(argv=None):
     ap.add_argument("--persona", default="persona.yaml")
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("draft", help="generate a post draft"); d.add_argument("--topic")
+    d.add_argument("--kind", choices=content.KINDS, help="default: random per content_mix")
+    d.add_argument("--product", type=int, help="product id for curation/sponsored")
+    pi = sub.add_parser("products-import", help="load products.yaml"); pi.add_argument("--file", default="products.yaml")
+    sub.add_parser("inquiries", help="list business inquiries (never auto-replied)")
     sub.add_parser("queue", help="list drafts and pending replies")
     a = sub.add_parser("approve-post"); a.add_argument("id", type=int)
     a.add_argument("--image-url", required=True, help="public URL of the image"); a.add_argument("--at", type=int, help="unix time")
@@ -29,10 +33,16 @@ def main(argv=None):
     llm = LLM(env.anthropic_key, env.model)
 
     if args.cmd == "draft":
-        print("draft id:", content.generate_draft(c, llm, persona, args.topic))
+        kind = args.kind or content.pick_kind(persona)
+        print("draft id:", content.generate_draft(c, llm, persona, args.topic, kind, args.product))
+    elif args.cmd == "products-import":
+        print("imported:", products.import_products(c, args.file))
+    elif args.cmd == "inquiries":
+        for q in c.execute("SELECT * FROM replies WHERE status='inquiry' ORDER BY id DESC"):
+            print(f"[{q['id']}] {q['kind']} @{q['author']}: {q['incoming']}")
     elif args.cmd == "queue":
-        for p in c.execute("SELECT id,status,topic,image_prompt,caption FROM posts WHERE status IN ('draft','approved')"):
-            print(f"[post {p['id']}] {p['status']} · {p['topic']}\n  image: {p['image_prompt']}\n{p['caption']}\n")
+        for p in c.execute("SELECT id,kind,status,topic,image_prompt,caption FROM posts WHERE status IN ('draft','approved')"):
+            print(f"[post {p['id']}] {p['kind']}/{p['status']} · {p['topic']}\n  image: {p['image_prompt']}\n{p['caption']}\n")
         for q in c.execute("SELECT * FROM replies WHERE status IN ('pending','flagged')"):
             print(f"[reply {q['id']}] {q['kind']} {q['status']} @{q['author']}: {q['incoming']}\n  -> {q['reply']} ({q['reason']})\n")
     elif args.cmd == "approve-post":

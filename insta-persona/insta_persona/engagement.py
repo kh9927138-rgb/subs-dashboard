@@ -1,14 +1,16 @@
 """Poll comments/DMs, draft replies, and send them (auto or after approval) under rate limits."""
 from .db import now, sent_last_hour
 from .persona_prompt import system_prompt
-from .safety import needs_human, triage
+from .safety import is_inquiry, needs_human, triage
 
 
 def _draft(c, llm, persona, kind, source_id, author, text):
     if c.execute("SELECT 1 FROM replies WHERE source_id=?", (source_id,)).fetchone():
         return
     status, reason, reply = "pending", "", None
-    if needs_human(text):
+    if is_inquiry(text):
+        status, reason = "inquiry", "business inquiry - human only"
+    elif needs_human(text):
         status, reason = "flagged", "keyword/length filter"
     else:
         action, reason = triage(llm, persona, text)

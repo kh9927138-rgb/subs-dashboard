@@ -21,6 +21,14 @@ python -m insta_persona.cli tick          # DRY_RUN=true 면 전송 대신 로�
 pytest
 ```
 
+## 수익화 장치 (큐레이션/협찬)
+- 게시물 종류: `daily`(일상) / `curation`(제휴 상품 소개) / `sponsored`(협찬). `persona.content_mix`로 비율 지정
+- `curation`/`sponsored`는 `#광고` 표기를 자동 삽입, 표기가 없으면 게시 단계에서 차단
+- "써봤어요/후기/내돈내산" 등 경험 가장 표현은 프롬프트로 금지 + 코드로 재검사(3회 실패 시 초안 폐기)
+- 상품: `products.example.yaml` → `products.yaml` 작성 후 `products-import`, `draft --kind curation --product <id>`
+- 협찬/제휴 문의는 `inquiry`로 분류되어 자동 답장하지 않음 → `inquiries`로 확인
+- 광고 표기 규정(공정위 지침, 인스타 유료 파트너십 표시 등)은 협업 전에 최신 내용을 직접 확인하세요
+
 ## Instagram 준비물
 - 인스타 **비즈니스/크리에이터 계정** + 연결된 Facebook 페이지 + Meta 개발자 앱
 - 권한: `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`

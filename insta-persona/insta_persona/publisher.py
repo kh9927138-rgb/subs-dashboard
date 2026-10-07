@@ -6,6 +6,10 @@ def publish_due(c, ig):
     n = 0
     for p in c.execute("SELECT * FROM posts WHERE status='approved' AND image_url IS NOT NULL "
                        "AND COALESCE(scheduled_at,0)<=?", (now(),)).fetchall():
+        if p["kind"] != "daily" and not any(l in p["caption"] for l in ("#광고", "#ad", "#협찬", "유료 광고")):
+            c.execute("UPDATE posts SET status='failed', error='missing ad label' WHERE id=?", (p["id"],))
+            c.commit()
+            continue
         try:
             mid = ig.publish_image(p["image_url"], p["caption"])
             c.execute("UPDATE posts SET status='published', published_at=?, ig_media_id=? WHERE id=?",

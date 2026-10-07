@@ -41,3 +41,12 @@ def test_auto_send_respects_rate_limit(tmp_path):
 
 def test_filter():
     assert needs_human("계좌 알려줘") and not needs_human("오늘 날씨 좋네요")
+
+
+def test_inquiry_is_never_replied(tmp_path):
+    class IG2(FakeIG):
+        def comments(self, m): return [{"id": "c9", "text": "협찬 문의드려요", "username": "brand"}]
+    c, ig, p = connect(str(tmp_path / "t.db")), IG2(), persona(True)
+    engagement.poll(c, ig, FakeLLM(), p)
+    assert engagement.send_ready(c, ig, p) == 0
+    assert c.execute("SELECT status FROM replies").fetchone()[0] == "inquiry"
