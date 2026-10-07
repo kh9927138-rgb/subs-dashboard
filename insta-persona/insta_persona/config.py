@@ -19,6 +19,8 @@ class Persona:
     disclosure: str
     bio: str
     language: str = "ko"
+    appearance: str = ""          # fixed look, prepended to every image prompt
+    reference_image: str = ""     # path to the AI-generated reference image
     tone: str = ""
     topics: list = field(default_factory=list)
     avoid: list = field(default_factory=list)
